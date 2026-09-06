@@ -2,15 +2,23 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { 
+  ShieldIcon, 
+  SearchIcon, 
+  CompareIcon, 
+  TerminalIcon, 
+  DashboardIcon, 
+  AcademicIcon, 
+  AlertTriangleIcon 
+} from '@/components/Icons';
 
 const navLinks = [
-  { href: '/', label: 'Home', icon: '🏠' },
-  { href: '/analyzer', label: 'Analyzer', icon: '🔍' },
-  { href: '/comparison', label: 'Compare', icon: '🔄' },
-  { href: '/training', label: 'Training', icon: '🎮' },
-  { href: '/dashboard', label: 'Dashboard', icon: '📊' },
-  { href: '/knowledge', label: 'Knowledge', icon: '📚' },
-  { href: '/threats', label: 'Threats', icon: '🚨' },
+  { href: '/analyzer', label: 'Analyzer', Icon: SearchIcon },
+  { href: '/comparison', label: 'Compare', Icon: CompareIcon },
+  { href: '/training', label: 'Training', Icon: TerminalIcon },
+  { href: '/dashboard', label: 'Telemetry', Icon: DashboardIcon },
+  { href: '/threats', label: 'Threat Feed', Icon: AlertTriangleIcon },
+  { href: '/knowledge', label: 'Docs', Icon: AcademicIcon },
 ];
 
 export default function Navbar() {
@@ -19,7 +27,7 @@ export default function Navbar() {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
+    const onScroll = () => setScrolled(window.scrollY > 15);
     window.addEventListener('scroll', onScroll);
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
@@ -36,143 +44,195 @@ export default function Navbar() {
         left: 0,
         right: 0,
         zIndex: 100,
-        padding: '0 24px',
-        height: 72,
+        height: 60,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        background: scrolled ? 'rgba(10, 14, 26, 0.85)' : 'transparent',
-        backdropFilter: scrolled ? 'blur(20px)' : 'none',
-        borderBottom: scrolled ? '1px solid rgba(255,255,255,0.06)' : '1px solid transparent',
-        transition: 'all 0.3s ease',
+        padding: '0 24px',
+        backgroundColor: scrolled ? 'rgba(0, 0, 0, 0.85)' : 'rgba(0, 0, 0, 0.4)',
+        backdropFilter: 'blur(16px)',
+        borderBottom: '1px solid var(--border)',
+        transition: 'background-color 150ms ease, border-color 150ms ease',
       }}
     >
-      {/* Logo */}
-      <Link href="/" style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: 10 }}>
-        <span style={{
-          fontSize: 28,
-          filter: 'drop-shadow(0 0 8px rgba(99,102,241,0.5))',
-        }}>🛡️</span>
-        <span style={{
-          fontSize: 20,
-          fontWeight: 800,
-          letterSpacing: '-0.02em',
-          background: 'linear-gradient(135deg, #6366f1, #06d6a0)',
-          WebkitBackgroundClip: 'text',
-          WebkitTextFillColor: 'transparent',
-        }}>
-          PhishGuard
-        </span>
-      </Link>
-
-      {/* Desktop Links */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 4,
-        '@media (maxWidth: 900px)': { display: 'none' },
-      }}
-      className="desktop-nav"
-      >
-        {navLinks.map((link) => {
-          const isActive = pathname === link.href;
-          return (
-            <Link
-              key={link.href}
-              href={link.href}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 6,
-                padding: '8px 16px',
-                borderRadius: 10,
-                fontSize: 14,
-                fontWeight: 500,
-                textDecoration: 'none',
-                color: isActive ? '#fff' : 'rgba(255,255,255,0.6)',
-                background: isActive ? 'rgba(99,102,241,0.2)' : 'transparent',
-                border: isActive ? '1px solid rgba(99,102,241,0.3)' : '1px solid transparent',
-                transition: 'all 0.2s ease',
-              }}
-              onMouseEnter={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.color = 'rgba(255,255,255,0.9)';
-                  e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!isActive) {
-                  e.currentTarget.style.color = 'rgba(255,255,255,0.6)';
-                  e.currentTarget.style.background = 'transparent';
-                }
-              }}
-            >
-              <span style={{ fontSize: 16 }}>{link.icon}</span>
-              {link.label}
-            </Link>
-          );
-        })}
-      </div>
-
-      {/* Mobile Hamburger */}
-      <button
-        className="mobile-toggle"
-        onClick={() => setMobileOpen(!mobileOpen)}
-        style={{
-          display: 'none',
-          background: 'none',
-          border: 'none',
-          color: '#fff',
-          fontSize: 24,
-          cursor: 'pointer',
-          padding: 8,
-        }}
-        aria-label="Toggle mobile menu"
-      >
-        {mobileOpen ? '✕' : '☰'}
-      </button>
-
-      {/* Mobile Menu */}
-      {mobileOpen && (
-        <div
-          className="mobile-menu"
-          style={{
-            position: 'fixed',
-            top: 72,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'rgba(10, 14, 26, 0.95)',
-            backdropFilter: 'blur(20px)',
-            padding: 24,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 8,
-            zIndex: 99,
+      {/* Brand Logo */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
+        <Link 
+          href="/" 
+          style={{ 
+            textDecoration: 'none', 
+            display: 'flex', 
+            alignItems: 'center', 
+            gap: 10,
+            color: '#ffffff'
           }}
         >
-          {navLinks.map((link) => {
-            const isActive = pathname === link.href;
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 30,
+            height: 30,
+            borderRadius: 6,
+            background: '#ffffff',
+            color: '#000000',
+          }}>
+            <ShieldIcon size={16} />
+          </div>
+          <span style={{
+            fontSize: 15,
+            fontWeight: 600,
+            letterSpacing: '-0.02em',
+            color: '#ffffff',
+          }}>
+            PhishGuard
+          </span>
+          <span style={{
+            fontSize: 11,
+            fontFamily: 'var(--font-mono)',
+            padding: '2px 6px',
+            borderRadius: 4,
+            background: 'rgba(255, 255, 255, 0.05)',
+            border: '1px solid var(--border)',
+            color: 'var(--foreground-subtle)',
+          }}>
+            v1.0
+          </span>
+        </Link>
+
+        {/* Desktop Nav Items */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 4 }} className="hidden-mobile">
+          {navLinks.map(({ href, label, Icon }) => {
+            const isActive = pathname === href;
             return (
               <Link
-                key={link.href}
-                href={link.href}
+                key={href}
+                href={href}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 7,
+                  fontSize: 13,
+                  fontWeight: 500,
+                  textDecoration: 'none',
+                  padding: '6px 12px',
+                  borderRadius: 6,
+                  color: isActive ? '#ffffff' : 'var(--foreground-muted)',
+                  backgroundColor: isActive ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+                  border: isActive ? '1px solid rgba(255, 255, 255, 0.1)' : '1px solid transparent',
+                  transition: 'all 120ms ease',
+                }}
+                onMouseEnter={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.color = '#ffffff';
+                    e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.04)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isActive) {
+                    e.currentTarget.style.color = 'var(--foreground-muted)';
+                    e.currentTarget.style.backgroundColor = 'transparent';
+                  }
+                }}
+              >
+                <Icon size={14} color={isActive ? '#ffffff' : 'var(--foreground-subtle)'} />
+                <span>{label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Right Controls */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        {/* Status indicator */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 6,
+          fontSize: 12,
+          fontFamily: 'var(--font-mono)',
+          color: 'var(--foreground-subtle)',
+          padding: '4px 10px',
+          borderRadius: 6,
+          background: 'rgba(255, 255, 255, 0.03)',
+          border: '1px solid var(--border)',
+        }}>
+          <span className="status-dot safe" />
+          <span style={{ fontSize: 11 }}>ENGINE ONLINE</span>
+        </div>
+
+        {/* Fast Scanner CTA */}
+        <Link
+          href="/analyzer"
+          className="btn-solid-white"
+          style={{ padding: '6px 14px', fontSize: 13 }}
+        >
+          <span>Scan URL</span>
+        </Link>
+
+        {/* Mobile Toggle Button */}
+        <button
+          onClick={() => setMobileOpen(!mobileOpen)}
+          style={{
+            background: 'transparent',
+            border: '1px solid var(--border)',
+            borderRadius: 6,
+            color: 'var(--foreground)',
+            padding: '6px 10px',
+            cursor: 'pointer',
+            display: 'none',
+          }}
+          className="visible-mobile"
+          aria-label="Toggle Navigation"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            {mobileOpen ? (
+              <path d="M18 6L6 18M6 6l12 12" />
+            ) : (
+              <path d="M4 6h16M4 12h16M4 18h16" />
+            )}
+          </svg>
+        </button>
+      </div>
+
+      {/* Mobile Drawer */}
+      {mobileOpen && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 60,
+            left: 0,
+            right: 0,
+            background: '#09090b',
+            borderBottom: '1px solid var(--border)',
+            padding: '16px 20px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 6,
+          }}
+        >
+          {navLinks.map(({ href, label, Icon }) => {
+            const isActive = pathname === href;
+            return (
+              <Link
+                key={href}
+                href={href}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 12,
-                  padding: '14px 20px',
-                  borderRadius: 12,
-                  fontSize: 16,
+                  gap: 10,
+                  fontSize: 14,
                   fontWeight: 500,
+                  padding: '10px 12px',
+                  borderRadius: 6,
                   textDecoration: 'none',
-                  color: isActive ? '#fff' : 'rgba(255,255,255,0.7)',
-                  background: isActive ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.03)',
-                  border: '1px solid ' + (isActive ? 'rgba(99,102,241,0.3)' : 'rgba(255,255,255,0.05)'),
+                  color: isActive ? '#ffffff' : 'var(--foreground-muted)',
+                  background: isActive ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
                 }}
               >
-                <span style={{ fontSize: 20 }}>{link.icon}</span>
-                {link.label}
+                <Icon size={16} />
+                <span>{label}</span>
               </Link>
             );
           })}
@@ -180,9 +240,9 @@ export default function Navbar() {
       )}
 
       <style jsx>{`
-        @media (max-width: 900px) {
-          .desktop-nav { display: none !important; }
-          .mobile-toggle { display: block !important; }
+        @media (max-width: 868px) {
+          .hidden-mobile { display: none !important; }
+          .visible-mobile { display: flex !important; }
         }
       `}</style>
     </nav>

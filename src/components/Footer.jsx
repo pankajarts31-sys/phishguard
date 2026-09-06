@@ -1,67 +1,89 @@
 'use client';
+import Link from 'next/link';
+import { ShieldIcon } from '@/components/Icons';
 
 export default function Footer() {
   return (
     <footer style={{
-      borderTop: '1px solid rgba(255,255,255,0.06)',
-      padding: '40px 24px',
-      textAlign: 'center',
-      background: 'rgba(10, 14, 26, 0.8)',
+      borderTop: '1px solid var(--border)',
+      padding: '48px 24px 36px',
+      background: '#000000',
+      color: 'var(--foreground-muted)',
+      fontSize: 13,
     }}>
-      <div style={{ maxWidth: 1280, margin: '0 auto' }}>
-        <div style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          gap: 8,
-          marginBottom: 16,
-        }}>
-          <span style={{ fontSize: 24 }}>🛡️</span>
-          <span style={{
-            fontSize: 18,
-            fontWeight: 700,
-            background: 'linear-gradient(135deg, #6366f1, #06d6a0)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-          }}>PhishGuard</span>
+      <div style={{
+        maxWidth: 1100,
+        margin: '0 auto',
+        display: 'flex',
+        flexWrap: 'wrap',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 24,
+      }}>
+        {/* Brand info */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: 24,
+            height: 24,
+            borderRadius: 5,
+            background: '#ffffff',
+            color: '#000000',
+          }}>
+            <ShieldIcon size={14} />
+          </div>
+          <span style={{ color: '#ffffff', fontWeight: 600, fontSize: 14, letterSpacing: '-0.02em' }}>
+            PhishGuard
+          </span>
+          <span style={{ color: 'var(--foreground-subtle)', margin: '0 4px' }}>—</span>
+          <span style={{ color: 'var(--foreground-subtle)', fontSize: 13 }}>
+            Heuristic Phishing Telemetry & Defense
+          </span>
         </div>
-        <p style={{
-          color: 'rgba(255,255,255,0.4)',
-          fontSize: 13,
-          lineHeight: 1.6,
-          maxWidth: 500,
-          margin: '0 auto',
-        }}>
-          Advanced phishing detection and cybersecurity education platform.
-          Protecting users through knowledge and real-time analysis.
-        </p>
-        <div style={{
-          marginTop: 20,
-          display: 'flex',
-          justifyContent: 'center',
-          gap: 24,
-          flexWrap: 'wrap',
-        }}>
-          {['Privacy Policy', 'Terms of Service', 'Security', 'Contact'].map(link => (
-            <a
-              key={link}
-              href="#"
-              style={{
-                color: 'rgba(255,255,255,0.35)',
-                textDecoration: 'none',
-                fontSize: 13,
-                transition: 'color 0.2s',
-              }}
-              onMouseEnter={e => e.currentTarget.style.color = 'rgba(255,255,255,0.7)'}
-              onMouseLeave={e => e.currentTarget.style.color = 'rgba(255,255,255,0.35)'}
-            >
-              {link}
-            </a>
-          ))}
+
+        {/* Links */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+          <Link href="/analyzer" style={{ color: 'var(--foreground-muted)', textDecoration: 'none' }} className="hover:text-white">
+            Scanner
+          </Link>
+          <Link href="/comparison" style={{ color: 'var(--foreground-muted)', textDecoration: 'none' }} className="hover:text-white">
+            Comparison
+          </Link>
+          <Link href="/training" style={{ color: 'var(--foreground-muted)', textDecoration: 'none' }} className="hover:text-white">
+            Academy
+          </Link>
+          <Link href="/threats" style={{ color: 'var(--foreground-muted)', textDecoration: 'none' }} className="hover:text-white">
+            Threats
+          </Link>
+          <Link href="/knowledge" style={{ color: 'var(--foreground-muted)', textDecoration: 'none' }} className="hover:text-white">
+            Docs
+          </Link>
         </div>
-        <p style={{ color: 'rgba(255,255,255,0.2)', fontSize: 12, marginTop: 20 }}>
-          © 2025 PhishGuard. Built for cybersecurity education. Not a replacement for professional security tools.
-        </p>
+      </div>
+
+      <div style={{
+        maxWidth: 1100,
+        margin: '28px auto 0',
+        paddingTop: 20,
+        borderTop: '1px solid var(--border-subtle)',
+        display: 'flex',
+        flexWrap: 'wrap',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 12,
+        color: 'var(--foreground-subtle)',
+        fontFamily: 'var(--font-mono)',
+        fontSize: 11,
+      }}>
+        <div>
+          © {new Date().getFullYear()} PhishGuard Open Architecture. Zero static telemetry tracking.
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <span className="status-dot safe" />
+          <span>ALL HEURISTIC ENGINES OPERATIONAL</span>
+        </div>
       </div>
     </footer>
   );

@@ -1,9 +1,19 @@
 'use client';
-import { useState, useEffect, useCallback } from 'react';
-import { emailChallenges, urlChallenges, inspectorChallenges } from '@/lib/challenges';
+import { useState, useEffect } from 'react';
+import { emailChallenges, urlChallenges, inspectorChallenges, achievements } from '@/lib/challenges';
+import { 
+  TerminalIcon, 
+  MailIcon, 
+  SearchIcon, 
+  CheckCircleIcon, 
+  AlertTriangleIcon, 
+  FlameIcon, 
+  ShieldIcon,
+  ArrowRightIcon
+} from '@/components/Icons';
 
 // ═══════════════════════════════════════════════════════════════════════════
-// EMAIL TRIAGE COMPONENT
+// EMAIL TRIAGE COMPONENT (Minimal Engineered UI)
 // ═══════════════════════════════════════════════════════════════════════════
 function EmailTriage({ onComplete }) {
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -38,148 +48,166 @@ function EmailTriage({ onComplete }) {
 
   if (isFinished) {
     return (
-      <div style={{ textAlign: 'center', padding: 40 }}>
-        <div style={{ fontSize: 64, marginBottom: 16 }}>🎉</div>
-        <h3 style={{ fontSize: 24, fontWeight: 800, marginBottom: 8 }}>Challenge Complete!</h3>
-        <p style={{ color: 'rgba(255,255,255,0.5)' }}>Score: {score} points</p>
+      <div className="card-minimal" style={{ textAlign: 'center', padding: 48, background: '#09090b' }}>
+        <div className="text-mono-meta" style={{ marginBottom: 8 }}>EVALUATION COMPLETED</div>
+        <h3 style={{ fontSize: 24, fontWeight: 700, color: '#ffffff', marginBottom: 12 }}>
+          Email Triage Session Finalized
+        </h3>
+        <p className="text-subtle" style={{ marginBottom: 24 }}>
+          Total Score: <span style={{ color: '#ffffff', fontWeight: 600 }}>{score} points</span> • Accuracy: {Math.round((results.filter(r => r.correct).length / emailChallenges.length) * 100)}%
+        </p>
+        <button
+          onClick={() => {
+            setCurrentIdx(0);
+            setResults([]);
+            setScore(0);
+            setStreak(0);
+            setAnswered(null);
+          }}
+          className="btn-solid-white"
+        >
+          Restart Scenario
+        </button>
       </div>
     );
   }
 
+  const isCorrect = answered ? ((answered === 'phishing') === challenge.isPhishing) : null;
+
   return (
     <div>
-      {/* Progress */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
-        <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)' }}>
-          Email {currentIdx + 1} of {emailChallenges.length}
+      {/* Session Header Status */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, flexWrap: 'wrap', gap: 10 }}>
+        <span className="text-mono-meta">
+          EMAIL INCIDENT {currentIdx + 1} OF {emailChallenges.length}
         </span>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          {streak >= 3 && <span className="badge badge-warning">🔥 {streak} Streak!</span>}
-          <span className="badge badge-info">⭐ {score} pts</span>
-        </div>
-      </div>
-      <div className="progress-bar" style={{ marginBottom: 24 }}>
-        <div className="progress-bar-fill" style={{
-          width: `${((currentIdx) / emailChallenges.length) * 100}%`,
-          background: 'var(--gradient-primary)',
-        }} />
-      </div>
-
-      {/* Email Preview */}
-      <div className="glass" style={{ padding: 0, overflow: 'hidden', marginBottom: 24 }}>
-        {/* Email Header */}
-        <div style={{
-          padding: '16px 24px',
-          background: 'rgba(0,0,0,0.3)',
-          borderBottom: '1px solid rgba(255,255,255,0.05)',
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 8 }}>
-            <div>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginBottom: 4 }}>FROM</div>
-              <div style={{ fontSize: 14, fontWeight: 600, fontFamily: 'var(--font-mono)', color: '#fff' }}>
-                {challenge.sender}
-              </div>
-            </div>
-            <span className={`badge badge-${challenge.difficulty === 'easy' ? 'safe' : challenge.difficulty === 'medium' ? 'warning' : 'danger'}`}>
-              {challenge.difficulty}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {streak >= 2 && (
+            <span className="badge-minimal badge-warning" style={{ fontSize: 11 }}>
+              <FlameIcon size={12} />
+              <span>{streak}x STREAK</span>
             </span>
-          </div>
-          <div>
-            <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.35)', marginBottom: 4 }}>SUBJECT</div>
-            <div style={{ fontSize: 16, fontWeight: 700, color: '#fff' }}>
-              {challenge.subject}
-            </div>
-          </div>
-        </div>
-        {/* Email Body */}
-        <div style={{
-          padding: 24,
-          fontSize: 14,
-          lineHeight: 1.8,
-          color: 'rgba(255,255,255,0.75)',
-          whiteSpace: 'pre-line',
-          fontFamily: 'var(--font-sans)',
-        }}>
-          {challenge.body}
+          )}
+          <span className="badge-minimal" style={{ color: '#ffffff', fontWeight: 600 }}>
+            {score} XP
+          </span>
         </div>
       </div>
 
-      {/* Answer Buttons */}
-      {!answered ? (
-        <div style={{ display: 'flex', gap: 16, justifyContent: 'center' }}>
-          <button
-            onClick={() => handleAnswer('safe')}
-            className="btn-primary"
-            style={{
-              background: 'linear-gradient(135deg, #10b981, #059669)',
-              boxShadow: '0 4px 15px rgba(16,185,129,0.3)',
-              flex: 1, maxWidth: 200, justifyContent: 'center',
-            }}
-          >
-            ✅ Safe Email
-          </button>
-          <button
-            onClick={() => handleAnswer('phishing')}
-            className="btn-danger"
-            style={{ flex: 1, maxWidth: 200, display: 'flex', justifyContent: 'center' }}
-          >
-            🎣 Phishing
-          </button>
+      {/* Progress Line */}
+      <div style={{ width: '100%', height: 2, background: '#18181b', borderRadius: 2, marginBottom: 20 }}>
+        <div style={{ width: `${((currentIdx) / emailChallenges.length) * 100}%`, height: '100%', background: '#ffffff', transition: 'width 200ms ease' }} />
+      </div>
+
+      {/* Email Client Card */}
+      <div className="card-minimal" style={{ overflow: 'hidden', background: '#09090b', marginBottom: 20 }}>
+        {/* Email Header */}
+        <div style={{ padding: '16px 20px', background: '#121215', borderBottom: '1px solid var(--border)' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: 8, fontSize: 13, marginBottom: 8 }}>
+            <span className="text-mono-meta">FROM:</span>
+            <span style={{ fontFamily: 'var(--font-mono)', color: '#ffffff' }}>{challenge.sender}</span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: 8, fontSize: 13, marginBottom: 8 }}>
+            <span className="text-mono-meta">SUBJECT:</span>
+            <span style={{ fontWeight: 600, color: '#ffffff' }}>{challenge.subject}</span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: 8, fontSize: 13 }}>
+            <span className="text-mono-meta">DATE:</span>
+            <span className="text-mono-meta">{challenge.date || 'Today, 09:42 UTC'}</span>
+          </div>
         </div>
-      ) : (
-        <div>
-          {/* Result */}
-          <div className="glass" style={{
-            padding: 24,
-            borderColor: ((answered === 'phishing') === challenge.isPhishing) ? 'rgba(16,185,129,0.3)' : 'rgba(239,68,68,0.3)',
-            marginBottom: 20,
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
-              <span style={{ fontSize: 32 }}>
-                {((answered === 'phishing') === challenge.isPhishing) ? '✅' : '❌'}
-              </span>
-              <div>
-                <div style={{
-                  fontSize: 18, fontWeight: 700,
-                  color: ((answered === 'phishing') === challenge.isPhishing) ? 'var(--safe)' : 'var(--danger)',
-                }}>
-                  {((answered === 'phishing') === challenge.isPhishing) ? 'Correct!' : 'Incorrect'}
-                </div>
-                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)' }}>
-                  This email is {challenge.isPhishing ? 'a PHISHING attempt' : 'LEGITIMATE'}
-                </div>
-              </div>
+
+        {/* Email Body */}
+        <div style={{ padding: '24px 20px', fontSize: 14, color: 'var(--foreground)', lineHeight: 1.6 }}>
+          <p style={{ marginBottom: 16, whiteSpace: 'pre-line' }}>{challenge.body}</p>
+
+          {/* Suspect Link inside Email */}
+          {challenge.link && (
+            <div style={{
+              marginTop: 16,
+              padding: '10px 14px',
+              borderRadius: 6,
+              background: '#121215',
+              border: '1px solid var(--border)',
+              display: 'inline-block',
+              fontFamily: 'var(--font-mono)',
+              fontSize: 12,
+              color: 'var(--foreground-muted)',
+            }}>
+              <span className="text-mono-meta" style={{ marginRight: 8 }}>EMBEDDED TARGET:</span>
+              <span style={{ color: '#ffffff', textDecoration: 'underline' }}>{challenge.link}</span>
             </div>
-            <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)', lineHeight: 1.7, marginBottom: 16 }}>
+          )}
+        </div>
+
+        {/* Post-Answer Diagnostic Feedback */}
+        {answered !== null && (
+          <div style={{
+            padding: '16px 20px',
+            background: isCorrect ? 'var(--safe-bg)' : 'var(--danger-bg)',
+            borderTop: `1px solid ${isCorrect ? 'var(--safe-border)' : 'var(--danger-border)'}`,
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+              {isCorrect ? <CheckCircleIcon size={16} color="var(--safe)" /> : <AlertTriangleIcon size={16} color="var(--danger)" />}
+              <span style={{ fontWeight: 600, fontSize: 13, color: isCorrect ? 'var(--safe-text)' : 'var(--danger-text)' }}>
+                {isCorrect ? 'ACCURATE IDENTIFICATION' : 'MISCLASSIFICATION'}
+              </span>
+            </div>
+            <p style={{ fontSize: 13, color: 'var(--foreground-muted)', lineHeight: 1.5, marginBottom: 10 }}>
               {challenge.explanation}
             </p>
-            {challenge.indicators.length > 0 && (
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 600, color: 'var(--danger)', marginBottom: 8 }}>
-                  🔴 Phishing Indicators:
-                </div>
+            {challenge.indicators?.length > 0 && (
+              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+                <span className="text-mono-meta" style={{ alignSelf: 'center', marginRight: 4 }}>INDICATORS:</span>
                 {challenge.indicators.map((ind, i) => (
-                  <div key={i} style={{
-                    padding: '6px 12px', fontSize: 12, color: 'rgba(255,255,255,0.6)',
-                    display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4,
-                  }}>
-                    <span style={{ color: 'var(--danger)' }}>•</span> {ind}
-                  </div>
+                  <span key={i} className="badge-minimal" style={{ fontSize: 11 }}>
+                    {ind}
+                  </span>
                 ))}
               </div>
             )}
           </div>
-          <button onClick={handleNext} className="btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-            {currentIdx + 1 >= emailChallenges.length ? '🏁 Finish' : '➡️ Next Email'}
+        )}
+      </div>
+
+      {/* Decision Buttons */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+        {answered === null ? (
+          <>
+            <button
+              onClick={() => handleAnswer('safe')}
+              className="btn-dark"
+              style={{ flex: 1, padding: '12px 20px', fontSize: 14 }}
+            >
+              <CheckCircleIcon size={16} color="var(--safe)" />
+              <span>Mark Benign / Safe</span>
+            </button>
+            <button
+              onClick={() => handleAnswer('phishing')}
+              className="btn-dark"
+              style={{ flex: 1, padding: '12px 20px', fontSize: 14, borderColor: 'var(--danger-border)' }}
+            >
+              <AlertTriangleIcon size={16} color="var(--danger)" />
+              <span style={{ color: 'var(--danger-text)' }}>Report Phishing Attack</span>
+            </button>
+          </>
+        ) : (
+          <button
+            onClick={handleNext}
+            className="btn-solid-white"
+            style={{ width: '100%', padding: '12px 20px' }}
+          >
+            <span>Proceed to Next Scenario</span>
+            <ArrowRightIcon size={16} />
           </button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// URL DETECTIVE COMPONENT
+// URL DETECTIVE COMPONENT (Minimal Engineered UI)
 // ═══════════════════════════════════════════════════════════════════════════
 function URLDetective({ onComplete }) {
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -189,10 +217,10 @@ function URLDetective({ onComplete }) {
   const challenge = urlChallenges[currentIdx];
   const isFinished = currentIdx >= urlChallenges.length;
 
-  const handleSelect = (optIdx) => {
+  const handleSelect = (idx) => {
     if (selectedOption !== null) return;
-    setSelectedOption(optIdx);
-    if (challenge.options[optIdx].isReal) {
+    setSelectedOption(idx);
+    if (idx === challenge.correctIndex) {
       setScore(prev => prev + 15);
     }
   };
@@ -208,493 +236,229 @@ function URLDetective({ onComplete }) {
 
   if (isFinished) {
     return (
-      <div style={{ textAlign: 'center', padding: 40 }}>
-        <div style={{ fontSize: 64, marginBottom: 16 }}>🏆</div>
-        <h3 style={{ fontSize: 24, fontWeight: 800, marginBottom: 8 }}>All Done!</h3>
-        <p style={{ color: 'rgba(255,255,255,0.5)' }}>Score: {score} points</p>
+      <div className="card-minimal" style={{ textAlign: 'center', padding: 48, background: '#09090b' }}>
+        <div className="text-mono-meta" style={{ marginBottom: 8 }}>MODULE FINISHED</div>
+        <h3 style={{ fontSize: 24, fontWeight: 700, color: '#ffffff', marginBottom: 12 }}>
+          URL Detective Complete
+        </h3>
+        <p className="text-subtle" style={{ marginBottom: 24 }}>Final Score: {score} XP</p>
+        <button
+          onClick={() => {
+            setCurrentIdx(0);
+            setSelectedOption(null);
+            setScore(0);
+          }}
+          className="btn-solid-white"
+        >
+          Restart Module
+        </button>
       </div>
     );
   }
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <span style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)' }}>
-          Question {currentIdx + 1} of {urlChallenges.length}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+        <span className="text-mono-meta">
+          PUZZLE {currentIdx + 1} OF {urlChallenges.length} • TARGET BRAND: {challenge.targetBrand}
         </span>
-        <span className="badge badge-info">⭐ {score} pts</span>
-      </div>
-      <div className="progress-bar" style={{ marginBottom: 24 }}>
-        <div className="progress-bar-fill" style={{
-          width: `${((currentIdx) / urlChallenges.length) * 100}%`,
-          background: 'var(--gradient-primary)',
-        }} />
+        <span className="badge-minimal" style={{ color: '#ffffff', fontWeight: 600 }}>{score} XP</span>
       </div>
 
-      <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 24, color: '#fff' }}>
-        {challenge.question}
-      </h3>
-
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
-        {challenge.options.map((opt, i) => {
-          let borderColor = 'rgba(255,255,255,0.08)';
-          let bg = 'rgba(255,255,255,0.03)';
-          let icon = '';
-
-          if (selectedOption !== null) {
-            if (opt.isReal) {
-              borderColor = 'rgba(16,185,129,0.4)';
-              bg = 'rgba(16,185,129,0.08)';
-              icon = '✅';
-            } else if (i === selectedOption && !opt.isReal) {
-              borderColor = 'rgba(239,68,68,0.4)';
-              bg = 'rgba(239,68,68,0.08)';
-              icon = '❌';
-            }
-          }
-
-          return (
-            <button
-              key={i}
-              onClick={() => handleSelect(i)}
-              style={{
-                padding: '14px 20px',
-                borderRadius: 12,
-                background: bg,
-                border: `1px solid ${borderColor}`,
-                color: '#fff',
-                fontSize: 13,
-                fontFamily: 'var(--font-mono)',
-                textAlign: 'left',
-                cursor: selectedOption !== null ? 'default' : 'pointer',
-                transition: 'all 0.2s',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 12,
-                wordBreak: 'break-all',
-              }}
-              onMouseEnter={e => { if (selectedOption === null) e.currentTarget.style.borderColor = 'rgba(99,102,241,0.3)'; }}
-              onMouseLeave={e => { if (selectedOption === null) e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)'; }}
-            >
-              <span style={{
-                minWidth: 28, height: 28, borderRadius: 8,
-                background: selectedOption !== null && (opt.isReal || i === selectedOption)
-                  ? (opt.isReal ? 'rgba(16,185,129,0.2)' : 'rgba(239,68,68,0.2)')
-                  : 'rgba(255,255,255,0.05)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 14, fontWeight: 700,
-              }}>
-                {icon || String.fromCharCode(65 + i)}
-              </span>
-              {opt.url}
-            </button>
-          );
-        })}
-      </div>
-
-      {selectedOption !== null && (
-        <div>
-          <div className="glass" style={{
-            padding: 20, marginBottom: 20,
-            borderColor: 'rgba(99,102,241,0.2)',
-          }}>
-            <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.7)', lineHeight: 1.7 }}>
-              💡 {challenge.explanation}
-            </div>
-          </div>
-          <button onClick={handleNext} className="btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-            {currentIdx + 1 >= urlChallenges.length ? '🏁 Finish' : '➡️ Next Question'}
-          </button>
+      <div className="card-minimal" style={{ padding: 20, background: '#09090b', marginBottom: 20 }}>
+        <div style={{ fontSize: 14, fontWeight: 600, color: '#ffffff', marginBottom: 6 }}>
+          {challenge.prompt}
         </div>
-      )}
-    </div>
-  );
-}
+        <p className="text-subtle" style={{ fontSize: 13, marginBottom: 16 }}>
+          Analyze the 4 lookalike candidates below and select the authentic legitimate destination.
+        </p>
 
-// ═══════════════════════════════════════════════════════════════════════════
-// WEBSITE INSPECTOR COMPONENT
-// ═══════════════════════════════════════════════════════════════════════════
-function WebsiteInspector({ onComplete }) {
-  const [currentIdx, setCurrentIdx] = useState(0);
-  const [foundIndicators, setFoundIndicators] = useState([]);
-  const [timeLeft, setTimeLeft] = useState(0);
-  const [started, setStarted] = useState(false);
-  const [finished, setFinished] = useState(false);
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+          {challenge.options.map((opt, i) => {
+            let itemBorder = 'var(--border-subtle)';
+            let itemBg = '#121215';
 
-  const challenge = inspectorChallenges[currentIdx];
+            if (selectedOption !== null) {
+              if (i === challenge.correctIndex) {
+                itemBorder = 'var(--safe-border)';
+                itemBg = 'var(--safe-bg)';
+              } else if (i === selectedOption) {
+                itemBorder = 'var(--danger-border)';
+                itemBg = 'var(--danger-bg)';
+              }
+            }
 
-  useEffect(() => {
-    if (started && !finished && timeLeft > 0) {
-      const timer = setTimeout(() => setTimeLeft(t => t - 1), 1000);
-      return () => clearTimeout(timer);
-    }
-    if (timeLeft === 0 && started) {
-      setFinished(true);
-    }
-  }, [timeLeft, started, finished]);
+            return (
+              <button
+                key={i}
+                onClick={() => handleSelect(i)}
+                disabled={selectedOption !== null}
+                style={{
+                  padding: '12px 16px',
+                  borderRadius: 6,
+                  background: itemBg,
+                  border: `1px solid ${itemBorder}`,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 13,
+                  color: '#ffffff',
+                  cursor: selectedOption !== null ? 'default' : 'pointer',
+                  textAlign: 'left',
+                }}
+                className={selectedOption === null ? 'hover:border-zinc-700' : ''}
+              >
+                <span>{opt}</span>
+                {selectedOption !== null && i === challenge.correctIndex && (
+                  <CheckCircleIcon size={16} color="var(--safe)" />
+                )}
+                {selectedOption !== null && i === selectedOption && i !== challenge.correctIndex && (
+                  <AlertTriangleIcon size={16} color="var(--danger)" />
+                )}
+              </button>
+            );
+          })}
+        </div>
 
-  const startChallenge = () => {
-    setStarted(true);
-    setTimeLeft(challenge.timeLimit);
-    setFoundIndicators([]);
-    setFinished(false);
-  };
-
-  const toggleIndicator = (indId) => {
-    if (finished) return;
-    if (foundIndicators.includes(indId)) {
-      setFoundIndicators(foundIndicators.filter(id => id !== indId));
-    } else {
-      setFoundIndicators([...foundIndicators, indId]);
-    }
-  };
-
-  const points = challenge.indicators
-    .filter(ind => foundIndicators.includes(ind.id))
-    .reduce((sum, ind) => sum + ind.points, 0);
-
-  return (
-    <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-        <span className={`badge badge-${challenge.difficulty === 'easy' ? 'safe' : challenge.difficulty === 'medium' ? 'warning' : 'danger'}`}>
-          {challenge.difficulty}
-        </span>
-        {started && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-            <span className="badge badge-info">⭐ {points}/{challenge.maxPoints} pts</span>
-            <span style={{
-              fontSize: 18, fontWeight: 800, fontFamily: 'var(--font-mono)',
-              color: timeLeft < 30 ? 'var(--danger)' : 'var(--safe)',
-            }}>
-              {Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, '0')}
-            </span>
+        {selectedOption !== null && (
+          <div style={{ marginTop: 16, paddingTop: 14, borderTop: '1px solid var(--border-subtle)', fontSize: 13, color: 'var(--foreground-muted)' }}>
+            <span className="text-mono-meta" style={{ marginRight: 6 }}>RATIONALE:</span>
+            {challenge.explanation}
           </div>
         )}
       </div>
 
-      <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 8, color: '#fff' }}>
-        {challenge.title}
-      </h3>
-      <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', marginBottom: 20 }}>
-        {challenge.description}
-      </p>
-
-      {/* Simulated website */}
-      <div className="glass" style={{ padding: 0, overflow: 'hidden', marginBottom: 24 }}>
-        <div style={{
-          padding: '10px 14px', background: 'rgba(0,0,0,0.3)',
-          display: 'flex', alignItems: 'center', gap: 8,
-          borderBottom: '1px solid rgba(255,255,255,0.05)',
-        }}>
-          <div style={{ display: 'flex', gap: 6 }}>
-            <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#ef4444' }} />
-            <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#f59e0b' }} />
-            <div style={{ width: 10, height: 10, borderRadius: '50%', background: '#10b981' }} />
-          </div>
-          <div style={{
-            flex: 1, padding: '5px 12px', borderRadius: 6,
-            background: 'rgba(0,0,0,0.3)', fontFamily: 'var(--font-mono)',
-            fontSize: 11, color: 'var(--danger)',
-          }}>
-            ⚠️ {challenge.url}
-          </div>
-        </div>
-        <div style={{ padding: 24, textAlign: 'center' }}>
-          <div style={{ fontSize: 48, marginBottom: 16, opacity: 0.3 }}>🌐</div>
-          <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.3)' }}>
-            Simulated phishing page — find the indicators below
-          </div>
-        </div>
-      </div>
-
-      {!started ? (
-        <button onClick={startChallenge} className="btn-primary" style={{ width: '100%', justifyContent: 'center' }}>
-          ⏱️ Start Challenge ({challenge.timeLimit}s)
+      {selectedOption !== null && (
+        <button onClick={handleNext} className="btn-solid-white" style={{ width: '100%', padding: '12px' }}>
+          <span>Next Target</span>
+          <ArrowRightIcon size={15} />
         </button>
-      ) : (
-        <div>
-          <h4 style={{ fontSize: 14, fontWeight: 600, marginBottom: 12, color: 'rgba(255,255,255,0.5)' }}>
-            Click the indicators you can identify:
-          </h4>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 10 }}>
-            {challenge.indicators.map((ind) => {
-              const isFound = foundIndicators.includes(ind.id);
-              return (
-                <button
-                  key={ind.id}
-                  onClick={() => toggleIndicator(ind.id)}
-                  style={{
-                    padding: '12px 16px',
-                    borderRadius: 10,
-                    background: isFound ? 'rgba(16,185,129,0.1)' : 'rgba(255,255,255,0.03)',
-                    border: `1px solid ${isFound ? 'rgba(16,185,129,0.3)' : 'rgba(255,255,255,0.08)'}`,
-                    color: '#fff',
-                    textAlign: 'left',
-                    cursor: finished ? 'default' : 'pointer',
-                    transition: 'all 0.2s',
-                    display: 'flex', alignItems: 'center', gap: 10,
-                  }}
-                >
-                  <span style={{
-                    minWidth: 24, height: 24, borderRadius: 6,
-                    background: isFound ? 'var(--safe)' : 'rgba(255,255,255,0.1)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    fontSize: 12, color: isFound ? '#fff' : 'transparent',
-                  }}>✓</span>
-                  <div>
-                    <div style={{ fontSize: 13, fontWeight: 600 }}>{ind.name}</div>
-                    <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)' }}>
-                      {ind.location} • {ind.points}pts
-                    </div>
-                  </div>
-                </button>
-              );
-            })}
-          </div>
-
-          {finished && (
-            <div style={{
-              marginTop: 24, padding: 24, borderRadius: 12,
-              background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)',
-              textAlign: 'center',
-            }}>
-              <div style={{ fontSize: 32, marginBottom: 8 }}>
-                {points >= challenge.maxPoints * 0.8 ? '🏆' : points >= challenge.maxPoints * 0.5 ? '👍' : '💪'}
-              </div>
-              <div style={{ fontSize: 20, fontWeight: 800, color: '#fff', marginBottom: 4 }}>
-                {points} / {challenge.maxPoints} Points
-              </div>
-              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)' }}>
-                You found {foundIndicators.length} of {challenge.indicators.length} indicators
-              </div>
-              {currentIdx + 1 < inspectorChallenges.length && (
-                <button
-                  onClick={() => {
-                    setCurrentIdx(prev => prev + 1);
-                    setStarted(false);
-                    setFinished(false);
-                    setFoundIndicators([]);
-                  }}
-                  className="btn-primary"
-                  style={{ marginTop: 16, justifyContent: 'center' }}
-                >
-                  ➡️ Next Challenge
-                </button>
-              )}
-            </div>
-          )}
-
-          {!finished && (
-            <button
-              onClick={() => setFinished(true)}
-              className="btn-secondary"
-              style={{ marginTop: 16, width: '100%', justifyContent: 'center' }}
-            >
-              ✅ Submit ({foundIndicators.length} found)
-            </button>
-          )}
-        </div>
       )}
     </div>
   );
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// MAIN TRAINING PAGE
+// MAIN TRAINING ACADEMY PAGE
 // ═══════════════════════════════════════════════════════════════════════════
 export default function TrainingPage() {
-  const [activeModule, setActiveModule] = useState(null);
-  const [completedModules, setCompletedModules] = useState({});
+  const [activeTab, setActiveTab] = useState('email'); // email | url | badges
+  const [totalXP, setTotalXP] = useState(120);
 
   useEffect(() => {
-    const saved = localStorage.getItem('phishguard_training_progress');
-    if (saved) setCompletedModules(JSON.parse(saved));
+    const saved = localStorage.getItem('phishguard_total_xp');
+    if (saved) setTotalXP(parseInt(saved, 10));
   }, []);
 
-  const handleModuleComplete = (moduleName, result) => {
-    const newCompleted = { ...completedModules, [moduleName]: result };
-    setCompletedModules(newCompleted);
-    localStorage.setItem('phishguard_training_progress', JSON.stringify(newCompleted));
+  const handleComplete = (data) => {
+    const newXP = totalXP + (data.score || 20);
+    setTotalXP(newXP);
+    localStorage.setItem('phishguard_total_xp', newXP.toString());
   };
 
-  const modules = [
-    {
-      id: 'email',
-      icon: '📧',
-      title: 'Email Triage',
-      description: 'Sort incoming emails as Safe or Phishing. Learn to spot the red flags.',
-      count: `${emailChallenges.length} scenarios`,
-      difficulty: 'Mixed',
-      color: '#6366f1',
-    },
-    {
-      id: 'url',
-      icon: '🔗',
-      title: 'URL Detective',
-      description: 'Identify the real URL from a set of look-alikes. Test your eye for detail.',
-      count: `${urlChallenges.length} questions`,
-      difficulty: 'Progressive',
-      color: '#06d6a0',
-    },
-    {
-      id: 'inspector',
-      icon: '🕵️',
-      title: 'Website Inspector',
-      description: 'Find all phishing indicators on simulated websites. Race against the clock.',
-      count: `${inspectorChallenges.length} pages`,
-      difficulty: 'Timed',
-      color: '#f59e0b',
-    },
-  ];
-
-  if (activeModule) {
-    return (
-      <div className="page-container" style={{ maxWidth: 800 }}>
-        <button
-          onClick={() => setActiveModule(null)}
-          style={{
-            background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)',
-            fontSize: 14, cursor: 'pointer', marginBottom: 24,
-            display: 'flex', alignItems: 'center', gap: 8,
-          }}
-        >
-          ← Back to Modules
-        </button>
-
-        <div className="glass" style={{ padding: 32 }}>
-          {activeModule === 'email' && (
-            <EmailTriage onComplete={(r) => { handleModuleComplete('email', r); setActiveModule(null); }} />
-          )}
-          {activeModule === 'url' && (
-            <URLDetective onComplete={(r) => { handleModuleComplete('url', r); setActiveModule(null); }} />
-          )}
-          {activeModule === 'inspector' && (
-            <WebsiteInspector onComplete={(r) => { handleModuleComplete('inspector', r); setActiveModule(null); }} />
-          )}
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="page-container" style={{ maxWidth: 1000 }}>
+    <div style={{ maxWidth: 1000, margin: '0 auto', padding: '36px 24px 80px' }}>
+      
       {/* Header */}
-      <div style={{ textAlign: 'center', marginBottom: 48 }}>
-        <div className="animate-fadeInUp" style={{
-          display: 'inline-flex', alignItems: 'center', gap: 8,
-          padding: '8px 20px', borderRadius: 9999,
-          background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)',
-          marginBottom: 20, fontSize: 13, fontWeight: 600, color: '#fbbf24',
-        }}>
-          🎮 Gamified Learning
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 32, flexWrap: 'wrap', gap: 16 }}>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <span className="text-mono-meta">TRAINING SUITE</span>
+            <span style={{ color: 'var(--border)' }}>/</span>
+            <span className="text-mono-meta">TACTICAL SIMULATION</span>
+          </div>
+          <h1 className="heading-section" style={{ fontSize: 26, marginBottom: 8 }}>
+            Phishing Simulation Academy
+          </h1>
+          <p className="text-subtle" style={{ fontSize: 14 }}>
+            Train recognition reflexes through simulated social engineering vectors, typosquats, and inbox bait.
+          </p>
         </div>
-        <h1 className="animate-fadeInUp stagger-1" style={{
-          fontSize: 'clamp(32px, 5vw, 48px)', fontWeight: 800, letterSpacing: '-0.03em', marginBottom: 12,
-        }}>
-          Training <span className="gradient-text">Academy</span>
-        </h1>
-        <p className="animate-fadeInUp stagger-2" style={{
-          color: 'rgba(255,255,255,0.5)', fontSize: 16, maxWidth: 550, margin: '0 auto',
-        }}>
-          Sharpen your phishing detection skills with interactive challenges, earn points, and build your Security IQ.
-        </p>
+
+        {/* Global XP Badge */}
+        <div className="card-minimal" style={{ padding: '8px 16px', display: 'flex', alignItems: 'center', gap: 12, background: '#09090b' }}>
+          <ShieldIcon size={18} color="#ffffff" />
+          <div>
+            <div className="text-mono-meta" style={{ fontSize: 10 }}>PROFICIENCY LEVEL</div>
+            <div style={{ fontSize: 14, fontWeight: 700, color: '#ffffff' }}>{totalXP} TOTAL XP</div>
+          </div>
+        </div>
       </div>
 
-      {/* Module Cards */}
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-        gap: 20,
-        marginBottom: 48,
-      }}>
-        {modules.map((mod, i) => {
-          const completed = completedModules[mod.id];
+      {/* Module Selector Tabs */}
+      <div style={{ display: 'flex', gap: 6, marginBottom: 24, borderBottom: '1px solid var(--border)', paddingBottom: 12 }}>
+        {[
+          { key: 'email', label: 'Email Triage', Icon: MailIcon },
+          { key: 'url', label: 'URL Detective', Icon: SearchIcon },
+          { key: 'badges', label: 'Achievements', Icon: ShieldIcon },
+        ].map(tab => {
+          const Icon = tab.Icon;
+          const isActive = activeTab === tab.key;
           return (
-            <div
-              key={mod.id}
-              className="glass glass-hover"
+            <button
+              key={tab.key}
+              onClick={() => setActiveTab(tab.key)}
               style={{
-                padding: 32,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 8,
+                background: isActive ? '#ffffff' : 'transparent',
+                color: isActive ? '#000000' : 'var(--foreground-muted)',
+                border: 'none',
+                fontWeight: 500,
+                fontSize: 13,
+                padding: '8px 16px',
+                borderRadius: 6,
                 cursor: 'pointer',
-                animation: `fadeInUp 0.6s ease-out ${i * 0.1}s both`,
-                position: 'relative',
-                overflow: 'hidden',
+                transition: 'all 120ms ease',
               }}
-              onClick={() => setActiveModule(mod.id)}
             >
-              {completed && (
-                <div style={{
-                  position: 'absolute', top: 12, right: 12,
-                  padding: '4px 12px', borderRadius: 9999,
-                  background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(16,185,129,0.3)',
-                  color: 'var(--safe)', fontSize: 11, fontWeight: 700,
-                }}>✅ Completed</div>
-              )}
-              <div style={{
-                width: 64, height: 64, borderRadius: 16,
-                background: `${mod.color}15`, border: `1px solid ${mod.color}30`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 32, marginBottom: 20,
-              }}>
-                {mod.icon}
-              </div>
-              <h3 style={{ fontSize: 20, fontWeight: 700, color: '#fff', marginBottom: 8 }}>
-                {mod.title}
-              </h3>
-              <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)', lineHeight: 1.6, marginBottom: 16 }}>
-                {mod.description}
-              </p>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <span className="badge badge-info">{mod.count}</span>
-                <span className="badge badge-cyan">{mod.difficulty}</span>
-              </div>
-              <div style={{
-                marginTop: 20, fontSize: 13, fontWeight: 600, color: mod.color,
-                display: 'flex', alignItems: 'center', gap: 6,
-              }}>
-                {completed ? '🔄 Play Again' : '▶️ Start Challenge'} →
-              </div>
-            </div>
+              <Icon size={14} />
+              <span>{tab.label}</span>
+            </button>
           );
         })}
       </div>
 
-      {/* Achievement Section */}
-      <div className="glass" style={{ padding: 32 }}>
-        <h3 style={{ fontSize: 20, fontWeight: 700, marginBottom: 20, display: 'flex', alignItems: 'center', gap: 8 }}>
-          🏆 Achievements
-        </h3>
+      {/* Tab Panels */}
+      {activeTab === 'email' && <EmailTriage onComplete={handleComplete} />}
+      {activeTab === 'url' && <URLDetective onComplete={handleComplete} />}
+      {activeTab === 'badges' && (
         <div style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
           gap: 12,
         }}>
-          {[
-            { icon: '🔍', name: 'First Scan', unlocked: true },
-            { icon: '📧', name: 'Email Detective', unlocked: !!completedModules.email },
-            { icon: '🔗', name: 'URL Master', unlocked: !!completedModules.url },
-            { icon: '🕵️', name: 'Sharp Eye', unlocked: !!completedModules.inspector },
-            { icon: '🔥', name: 'Streak Master', unlocked: false },
-            { icon: '💯', name: 'Perfect Score', unlocked: false },
-            { icon: '📚', name: 'Knowledge Seeker', unlocked: false },
-            { icon: '🏆', name: 'Certified', unlocked: Object.keys(completedModules).length >= 3 },
-          ].map((ach) => (
-            <div key={ach.name} style={{
-              padding: '16px 14px',
-              borderRadius: 12,
-              background: ach.unlocked ? 'rgba(99,102,241,0.08)' : 'rgba(255,255,255,0.02)',
-              border: `1px solid ${ach.unlocked ? 'rgba(99,102,241,0.2)' : 'rgba(255,255,255,0.05)'}`,
-              textAlign: 'center',
-              opacity: ach.unlocked ? 1 : 0.4,
-            }}>
-              <div style={{ fontSize: 28, marginBottom: 8, filter: ach.unlocked ? 'none' : 'grayscale(1)' }}>
-                {ach.icon}
+          {achievements.map((ach, idx) => (
+            <div key={idx} className="card-minimal" style={{ padding: 18, background: '#09090b' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8 }}>
+                <div style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: 4,
+                  background: '#121215',
+                  border: '1px solid var(--border)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#ffffff',
+                }}>
+                  <ShieldIcon size={14} />
+                </div>
+                <div>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: '#ffffff' }}>{ach.name}</div>
+                  <div className="text-mono-meta" style={{ fontSize: 11 }}>{ach.requirement}</div>
+                </div>
               </div>
-              <div style={{ fontSize: 12, fontWeight: 600, color: '#fff' }}>{ach.name}</div>
+              <p style={{ fontSize: 12, color: 'var(--foreground-muted)', lineHeight: 1.4 }}>
+                {ach.description}
+              </p>
             </div>
           ))}
         </div>
-      </div>
+      )}
+
     </div>
   );
 }

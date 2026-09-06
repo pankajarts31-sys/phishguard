@@ -1,238 +1,174 @@
 'use client';
 import { useState } from 'react';
 import { knowledgeArticles } from '@/lib/challenges';
+import { AcademicIcon, SearchIcon, ArrowRightIcon } from '@/components/Icons';
 
 export default function KnowledgePage() {
   const [selectedArticle, setSelectedArticle] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [activeCategory, setActiveCategory] = useState('all');
 
-  const categories = [...new Set(knowledgeArticles.map(a => a.category))];
+  const categories = ['all', ...new Set(knowledgeArticles.map(a => a.category))];
 
-  const filtered = searchQuery
-    ? knowledgeArticles.filter(a =>
-        a.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        a.content.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-    : knowledgeArticles;
+  const filtered = knowledgeArticles.filter(a => {
+    const matchesCat = activeCategory === 'all' || a.category === activeCategory;
+    const matchesSearch = !searchQuery || 
+      a.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      a.content.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCat && matchesSearch;
+  });
 
   if (selectedArticle) {
     const article = knowledgeArticles.find(a => a.id === selectedArticle);
     return (
-      <div className="page-container" style={{ maxWidth: 800 }}>
+      <div style={{ maxWidth: 840, margin: '0 auto', padding: '36px 24px 80px' }}>
         <button
           onClick={() => setSelectedArticle(null)}
-          style={{
-            background: 'none', border: 'none', color: 'rgba(255,255,255,0.5)',
-            fontSize: 14, cursor: 'pointer', marginBottom: 24,
-            display: 'flex', alignItems: 'center', gap: 8,
-          }}
+          className="btn-ghost"
+          style={{ marginBottom: 24, padding: '4px 8px', fontSize: 13 }}
         >
-          ← Back to Knowledge Base
+          ← Back to Documentation
         </button>
 
-        <div className="glass" style={{ padding: 40 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
-            <div style={{
-              width: 56, height: 56, borderRadius: 14,
-              background: 'rgba(139,92,246,0.15)', border: '1px solid rgba(139,92,246,0.3)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 28,
-            }}>
-              {article.icon}
+        <article className="card-minimal" style={{ padding: '36px 32px', background: '#09090b' }}>
+          <div style={{ marginBottom: 28, paddingBottom: 20, borderBottom: '1px solid var(--border)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+              <span className="badge-minimal">{article.category}</span>
+              <span className="text-mono-meta">• {article.readTime?.toUpperCase() || '3 MIN READ'}</span>
             </div>
-            <div>
-              <span className="badge badge-info" style={{ marginBottom: 6, display: 'inline-block' }}>
-                {article.category}
-              </span>
-              <h1 style={{ fontSize: 28, fontWeight: 800, letterSpacing: '-0.02em' }}>
-                {article.title}
-              </h1>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 4 }}>
-                📖 {article.readTime} read
-              </div>
-            </div>
+            <h1 style={{ fontSize: 28, fontWeight: 700, color: '#ffffff', letterSpacing: '-0.02em', lineHeight: 1.25 }}>
+              {article.title}
+            </h1>
           </div>
 
-          <div style={{
-            fontSize: 15,
-            lineHeight: 2,
-            color: 'rgba(255,255,255,0.75)',
-          }}>
-            {article.content.split('\n\n').map((paragraph, i) => {
-              if (paragraph.startsWith('**') && paragraph.endsWith('**')) {
-                return (
-                  <h3 key={i} style={{
-                    fontSize: 18, fontWeight: 700, color: '#fff',
-                    marginTop: 28, marginBottom: 12,
-                  }}>
-                    {paragraph.replace(/\*\*/g, '')}
-                  </h3>
-                );
-              }
-              if (paragraph.startsWith('**')) {
-                const parts = paragraph.split('\n');
-                return (
-                  <div key={i} style={{ marginTop: 20, marginBottom: 12 }}>
-                    {parts.map((part, j) => {
-                      if (part.startsWith('**')) {
-                        const heading = part.match(/\*\*(.+?)\*\*/)?.[1] || part;
-                        const rest = part.replace(/\*\*.+?\*\*/, '').trim();
-                        return (
-                          <div key={j}>
-                            <h4 style={{ fontSize: 16, fontWeight: 700, color: '#818cf8', marginTop: 16, marginBottom: 4 }}>
-                              {heading}
-                            </h4>
-                            {rest && <p style={{ fontSize: 14, color: 'rgba(255,255,255,0.6)' }}>{rest}</p>}
-                          </div>
-                        );
-                      }
-                      if (part.startsWith('- ')) {
-                        return (
-                          <div key={j} style={{
-                            display: 'flex', alignItems: 'flex-start', gap: 10,
-                            padding: '4px 0 4px 16px',
-                          }}>
-                            <span style={{ color: 'var(--primary)', marginTop: 2 }}>•</span>
-                            <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)' }}>{part.substring(2)}</span>
-                          </div>
-                        );
-                      }
-                      if (part.match(/^\d+\./)) {
-                        return (
-                          <div key={j} style={{
-                            display: 'flex', alignItems: 'flex-start', gap: 10,
-                            padding: '6px 0 6px 16px',
-                          }}>
-                            <span style={{
-                              minWidth: 24, height: 24, borderRadius: 8,
-                              background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.2)',
-                              display: 'flex', alignItems: 'center', justifyContent: 'center',
-                              fontSize: 11, fontWeight: 700, color: '#818cf8',
-                            }}>
-                              {part.match(/^(\d+)/)?.[1]}
-                            </span>
-                            <span style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)' }}>
-                              {part.replace(/^\d+\.\s*/, '')}
-                            </span>
-                          </div>
-                        );
-                      }
-                      return <p key={j} style={{ fontSize: 14, color: 'rgba(255,255,255,0.65)', marginBottom: 4 }}>{part}</p>;
-                    })}
-                  </div>
-                );
-              }
-              return <p key={i} style={{ marginBottom: 12 }}>{paragraph}</p>;
-            })}
+          <div style={{ fontSize: 14, lineHeight: 1.8, color: 'var(--foreground)' }}>
+            {article.content.split('\n\n').map((para, i) => (
+              <p key={i} style={{ marginBottom: 18, whiteSpace: 'pre-line' }}>
+                {para}
+              </p>
+            ))}
           </div>
-        </div>
+        </article>
       </div>
     );
   }
 
   return (
-    <div className="page-container" style={{ maxWidth: 1000 }}>
+    <div style={{ maxWidth: 1000, margin: '0 auto', padding: '36px 24px 80px' }}>
+      
       {/* Header */}
-      <div style={{ textAlign: 'center', marginBottom: 48 }}>
-        <div className="animate-fadeInUp" style={{
-          display: 'inline-flex', alignItems: 'center', gap: 8,
-          padding: '8px 20px', borderRadius: 9999,
-          background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.2)',
-          marginBottom: 20, fontSize: 13, fontWeight: 600, color: '#a78bfa',
-        }}>
-          📚 Security Knowledge Base
+      <div style={{ marginBottom: 32 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+          <span className="text-mono-meta">DEFENSIVE DOCUMENTATION</span>
+          <span style={{ color: 'var(--border)' }}>/</span>
+          <span className="text-mono-meta">SECURITY REPOSITORY</span>
         </div>
-        <h1 className="animate-fadeInUp stagger-1" style={{
-          fontSize: 'clamp(32px, 5vw, 48px)', fontWeight: 800, letterSpacing: '-0.03em', marginBottom: 12,
-        }}>
-          Learn About <span className="gradient-text">Phishing</span>
+        <h1 className="heading-section" style={{ fontSize: 26, marginBottom: 8 }}>
+          Security Knowledge Repository
         </h1>
-        <p className="animate-fadeInUp stagger-2" style={{
-          color: 'rgba(255,255,255,0.5)', fontSize: 16, maxWidth: 550, margin: '0 auto',
-        }}>
-          Comprehensive guides on phishing attacks, prevention strategies, and incident response procedures.
+        <p className="text-subtle" style={{ fontSize: 14 }}>
+          Comprehensive defensive guides detailing deceptive methodologies, homoglyphs, and containment protocols.
         </p>
       </div>
 
-      {/* Search */}
-      <div className="animate-fadeInUp stagger-3" style={{ marginBottom: 32, maxWidth: 500, margin: '0 auto 32px' }}>
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-          placeholder="🔍 Search articles..."
-          className="input-glass"
-          style={{ textAlign: 'center' }}
-        />
-      </div>
+      {/* Controls Bar */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: 12,
+        marginBottom: 24,
+      }}>
+        {/* Categories */}
+        <div style={{ display: 'flex', gap: 4, background: '#09090b', padding: 3, borderRadius: 6, border: '1px solid var(--border)' }}>
+          {categories.map(cat => (
+            <button
+              key={cat}
+              onClick={() => setActiveCategory(cat)}
+              style={{
+                background: activeCategory === cat ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+                border: 'none',
+                color: activeCategory === cat ? '#ffffff' : 'var(--foreground-muted)',
+                fontSize: 12,
+                fontFamily: 'var(--font-mono)',
+                padding: '5px 12px',
+                borderRadius: 4,
+                cursor: 'pointer',
+                textTransform: 'uppercase',
+              }}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
 
-      {/* Category Filters */}
-      <div style={{ display: 'flex', justifyContent: 'center', gap: 8, marginBottom: 32, flexWrap: 'wrap' }}>
-        {categories.map(cat => (
-          <button
-            key={cat}
-            className="badge badge-info"
-            style={{ cursor: 'pointer', padding: '6px 16px', fontSize: 13, border: 'none' }}
-          >
-            {cat}
-          </button>
-        ))}
+        {/* Search */}
+        <div style={{ position: 'relative', width: 280 }}>
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            placeholder="Search guides..."
+            className="input-minimal"
+            style={{ paddingLeft: 34, fontSize: 13, padding: '8px 12px 8px 34px' }}
+          />
+          <div style={{ position: 'absolute', left: 10, top: 10, color: 'var(--foreground-subtle)' }}>
+            <SearchIcon size={15} />
+          </div>
+        </div>
       </div>
 
       {/* Article Grid */}
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-        gap: 20,
+        gap: 16,
       }}>
-        {filtered.map((article, i) => (
+        {filtered.map(article => (
           <div
             key={article.id}
-            className="glass glass-hover"
-            style={{
-              padding: 28,
-              cursor: 'pointer',
-              animation: `fadeInUp 0.5s ease-out ${i * 0.08}s both`,
-            }}
             onClick={() => setSelectedArticle(article.id)}
+            className="card-minimal"
+            style={{
+              padding: 20,
+              background: '#09090b',
+              cursor: 'pointer',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              minHeight: 180,
+            }}
           >
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16 }}>
-              <div style={{
-                width: 52, height: 52, borderRadius: 14,
-                background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.2)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 26, flexShrink: 0,
-              }}>
-                {article.icon}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                <span className="badge-minimal">{article.category}</span>
+                <span className="text-mono-meta">{article.readTime}</span>
               </div>
-              <div>
-                <span className="badge badge-info" style={{ marginBottom: 8, display: 'inline-block' }}>
-                  {article.category}
-                </span>
-                <h3 style={{ fontSize: 18, fontWeight: 700, color: '#fff', marginBottom: 6 }}>
-                  {article.title}
-                </h3>
-                <p style={{
-                  fontSize: 13, color: 'rgba(255,255,255,0.45)', lineHeight: 1.6,
-                  display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden',
-                }}>
-                  {article.content.substring(0, 150)}...
-                </p>
-                <div style={{
-                  marginTop: 12, display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-                }}>
-                  <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)' }}>
-                    📖 {article.readTime}
-                  </span>
-                  <span style={{ fontSize: 13, fontWeight: 600, color: '#a78bfa' }}>
-                    Read →
-                  </span>
-                </div>
-              </div>
+              <h3 style={{ fontSize: 15, fontWeight: 600, color: '#ffffff', marginBottom: 8, lineHeight: 1.4 }}>
+                {article.title}
+              </h3>
+              <p style={{ fontSize: 13, color: 'var(--foreground-muted)', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 3, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+                {article.content}
+              </p>
+            </div>
+
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              fontSize: 12,
+              fontWeight: 500,
+              color: '#ffffff',
+              marginTop: 16,
+            }}>
+              <span>Read Documentation</span>
+              <ArrowRightIcon size={12} />
             </div>
           </div>
         ))}
       </div>
+
     </div>
   );
 }

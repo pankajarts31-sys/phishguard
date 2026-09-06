@@ -1,13 +1,22 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
 import { analyzeURL } from '@/lib/heuristics';
+import { 
+  SearchIcon, 
+  CheckCircleIcon, 
+  AlertTriangleIcon, 
+  XCircleIcon, 
+  ArrowRightIcon,
+  LockIcon,
+  GlobeIcon
+} from '@/components/Icons';
 
-function RiskMeter({ score, level, label, color }) {
+function MinimalScoreGauge({ score, level, label }) {
   const [animatedScore, setAnimatedScore] = useState(0);
 
   useEffect(() => {
     let start = 0;
-    const duration = 1500;
+    const duration = 1200;
     const startTime = performance.now();
 
     function animate(currentTime) {
@@ -20,107 +29,124 @@ function RiskMeter({ score, level, label, color }) {
     requestAnimationFrame(animate);
   }, [score]);
 
-  const circumference = 2 * Math.PI * 85;
+  const circumference = 2 * Math.PI * 72;
   const offset = circumference - (animatedScore / 100) * circumference;
 
+  const getStatusClass = () => {
+    if (score <= 25) return { stroke: 'var(--safe)', textClass: 'badge-safe' };
+    if (score <= 50) return { stroke: 'var(--warning)', textClass: 'badge-warning' };
+    return { stroke: 'var(--danger)', textClass: 'badge-danger' };
+  };
+
+  const status = getStatusClass();
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16 }}>
-      <svg width="200" height="200" viewBox="0 0 200 200">
-        {/* Background circle */}
-        <circle cx="100" cy="100" r="85" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="12" />
-        {/* Progress circle */}
-        <circle
-          cx="100" cy="100" r="85"
-          fill="none"
-          stroke={color}
-          strokeWidth="12"
-          strokeLinecap="round"
-          strokeDasharray={circumference}
-          strokeDashoffset={offset}
-          transform="rotate(-90 100 100)"
-          style={{ transition: 'stroke-dashoffset 1.5s cubic-bezier(0.4,0,0.2,1)', filter: `drop-shadow(0 0 10px ${color}50)` }}
-        />
-        {/* Score text */}
-        <text x="100" y="90" textAnchor="middle" fill={color} fontSize="42" fontWeight="800" fontFamily="Inter">
-          {animatedScore}
-        </text>
-        <text x="100" y="115" textAnchor="middle" fill="rgba(255,255,255,0.5)" fontSize="13" fontWeight="500" fontFamily="Inter">
-          / 100 Risk Score
-        </text>
-      </svg>
-      <div style={{
-        padding: '8px 24px',
-        borderRadius: 9999,
-        background: `${color}15`,
-        border: `1px solid ${color}40`,
-        color: color,
-        fontWeight: 700,
-        fontSize: 14,
-        textTransform: 'uppercase',
-        letterSpacing: '0.05em',
-      }}>
-        {label}
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 14 }}>
+      <div style={{ position: 'relative', width: 170, height: 170 }}>
+        <svg width="170" height="170" viewBox="0 0 170 170">
+          {/* Subtle background track */}
+          <circle cx="85" cy="85" r="72" fill="none" stroke="#18181b" strokeWidth="8" />
+          {/* Progress ring */}
+          <circle
+            cx="85" cy="85" r="72"
+            fill="none"
+            stroke={status.stroke}
+            strokeWidth="8"
+            strokeLinecap="round"
+            strokeDasharray={circumference}
+            strokeDashoffset={offset}
+            transform="rotate(-90 85 85)"
+            style={{ transition: 'stroke-dashoffset 1.2s cubic-bezier(0.16, 1, 0.3, 1)' }}
+          />
+        </svg>
+        <div style={{
+          position: 'absolute',
+          inset: 0,
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}>
+          <span style={{ fontSize: 44, fontWeight: 700, letterSpacing: '-0.04em', color: '#ffffff' }}>
+            {animatedScore}
+          </span>
+          <span className="text-mono-meta">
+            OUT OF 100
+          </span>
+        </div>
       </div>
+
+      <span className={`badge-minimal ${status.textClass}`} style={{ fontSize: 12, padding: '4px 12px' }}>
+        {label.toUpperCase()} THREAT PROFILE
+      </span>
     </div>
   );
 }
 
-function CheckResult({ check, index }) {
+function MinimalCheckItem({ check }) {
   const [expanded, setExpanded] = useState(false);
 
   return (
     <div
       style={{
-        padding: '16px 20px',
-        borderRadius: 12,
-        background: check.passed ? 'rgba(16,185,129,0.05)' : 'rgba(239,68,68,0.05)',
-        border: `1px solid ${check.passed ? 'rgba(16,185,129,0.15)' : 'rgba(239,68,68,0.15)'}`,
+        padding: '12px 16px',
+        borderRadius: 6,
+        background: check.passed ? 'rgba(255, 255, 255, 0.02)' : 'rgba(239, 68, 68, 0.04)',
+        border: `1px solid ${check.passed ? 'var(--border-subtle)' : 'var(--danger-border)'}`,
         cursor: 'pointer',
-        transition: 'all 0.2s ease',
-        animation: `fadeInUp 0.4s ease-out ${index * 0.05}s both`,
+        transition: 'background-color 150ms ease, border-color 150ms ease',
       }}
       onClick={() => setExpanded(!expanded)}
-      onMouseEnter={e => e.currentTarget.style.transform = 'translateX(4px)'}
-      onMouseLeave={e => e.currentTarget.style.transform = 'translateX(0)'}
+      className="hover:border-zinc-700"
     >
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ fontSize: 18 }}>
-            {check.passed ? '✅' : check.score > 0 ? '⚠️' : '✅'}
-          </span>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          {check.passed ? (
+            <CheckCircleIcon size={16} color="var(--safe)" />
+          ) : check.score > 0 ? (
+            <AlertTriangleIcon size={16} color="var(--danger)" />
+          ) : (
+            <CheckCircleIcon size={16} color="var(--safe)" />
+          )}
+
           <div>
-            <div style={{ fontWeight: 600, fontSize: 14, color: '#fff' }}>{check.name}</div>
-            {expanded && (
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', marginTop: 2 }}>
-                {check.description}
+            <div style={{ fontSize: 13, fontWeight: 500, color: '#ffffff' }}>
+              {check.name}
+            </div>
+            {!expanded && (
+              <div className="text-mono-meta" style={{ fontSize: 11, marginTop: 2 }}>
+                {check.detail}
               </div>
             )}
           </div>
         </div>
+
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{
-            fontSize: 12,
-            fontWeight: 700,
-            color: check.score === 0 ? 'var(--safe)' : check.score <= 3 ? 'var(--warning)' : 'var(--danger)',
+          <span className="text-mono-meta" style={{ 
+            color: check.passed ? 'var(--foreground-subtle)' : 'var(--danger-text)',
+            fontWeight: 600
           }}>
-            {check.score}/{check.weight}
+            {check.score} / {check.weight} pts
           </span>
-          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', transform: expanded ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }}>
+          <span style={{ fontSize: 11, color: 'var(--foreground-subtle)', transform: expanded ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 150ms' }}>
             ▼
           </span>
         </div>
       </div>
+
       {expanded && (
         <div style={{
-          marginTop: 12,
-          padding: '12px 16px',
-          borderRadius: 8,
-          background: 'rgba(0,0,0,0.2)',
-          fontSize: 13,
-          color: 'rgba(255,255,255,0.7)',
-          lineHeight: 1.6,
+          marginTop: 10,
+          paddingTop: 10,
+          borderTop: '1px solid var(--border-subtle)',
+          fontSize: 12,
+          color: 'var(--foreground-muted)',
+          lineHeight: 1.5,
         }}>
-          {check.detail}
+          <p style={{ marginBottom: 6 }}>{check.description}</p>
+          <div className="text-mono-meta" style={{ color: check.passed ? 'var(--safe-text)' : 'var(--danger-text)' }}>
+            Diagnosis: {check.detail}
+          </div>
         </div>
       )}
     </div>
@@ -131,306 +157,242 @@ export default function AnalyzerPage() {
   const [url, setUrl] = useState('');
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [filter, setFilter] = useState('all'); // all | failed | passed
   const [history, setHistory] = useState([]);
   const inputRef = useRef(null);
 
   useEffect(() => {
     inputRef.current?.focus();
     const saved = localStorage.getItem('phishguard_scan_history');
-    if (saved) setHistory(JSON.parse(saved));
+    if (saved) {
+      try {
+        setHistory(JSON.parse(saved));
+      } catch (e) {}
+    }
+
+    // Check query params
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const queryUrl = params.get('url');
+      if (queryUrl) {
+        setUrl(queryUrl);
+        executeScan(queryUrl);
+      }
+    }
   }, []);
 
-  const handleScan = async () => {
-    if (!url.trim()) return;
+  const executeScan = (targetUrl) => {
+    const toScan = (targetUrl || url).trim();
+    if (!toScan) return;
     setLoading(true);
     setResult(null);
 
-    // Simulate network delay for UX
-    await new Promise(r => setTimeout(r, 1500));
+    setTimeout(() => {
+      const analysis = analyzeURL(toScan);
+      setResult(analysis);
+      setLoading(false);
 
-    const analysis = analyzeURL(url.trim());
-    setResult(analysis);
-    setLoading(false);
-
-    if (analysis.valid) {
-      const entry = {
-        url: analysis.url,
-        score: analysis.risk.score,
-        level: analysis.risk.level,
-        label: analysis.risk.label,
-        timestamp: analysis.timestamp,
-      };
-      const newHistory = [entry, ...history].slice(0, 20);
-      setHistory(newHistory);
-      localStorage.setItem('phishguard_scan_history', JSON.stringify(newHistory));
-
-      // Update scan count
-      const count = parseInt(localStorage.getItem('phishguard_scan_count') || '0') + 1;
-      localStorage.setItem('phishguard_scan_count', count.toString());
-    }
+      if (analysis.valid) {
+        const entry = {
+          url: analysis.url,
+          score: analysis.risk.score,
+          level: analysis.risk.level,
+          label: analysis.risk.label,
+          timestamp: analysis.timestamp,
+        };
+        const newHistory = [entry, ...history.filter(h => h.url !== entry.url)].slice(0, 15);
+        setHistory(newHistory);
+        localStorage.setItem('phishguard_scan_history', JSON.stringify(newHistory));
+      }
+    }, 400);
   };
 
   const exampleURLs = [
-    { url: 'https://www.paypal.com/signin', label: 'PayPal (Safe)' },
-    { url: 'http://paypa1-secure.com/signin', label: 'Fake PayPal' },
-    { url: 'https://accounts.google.com.verify-now.xyz/login', label: 'Fake Google' },
-    { url: 'http://192.168.1.100/chase/login', label: 'IP Phishing' },
-    { url: 'https://amaz0n-verify.tk/account', label: 'Fake Amazon' },
+    { url: 'https://www.paypal.com/signin', label: 'paypal.com' },
+    { url: 'http://paypa1-secure.com/signin', label: 'paypa1-secure.com' },
+    { url: 'https://accounts.google.com.verify-now.xyz/login', label: 'google.verify-now.xyz' },
+    { url: 'http://192.168.1.100/chase/login', label: '192.168.1.100' },
+    { url: 'https://amaz0n-verify.tk/account', label: 'amaz0n-verify.tk' },
   ];
 
+  const filteredChecks = result?.checks?.filter(c => {
+    if (filter === 'failed') return !c.passed;
+    if (filter === 'passed') return c.passed;
+    return true;
+  }) || [];
+
   return (
-    <div className="page-container" style={{ maxWidth: 1000 }}>
+    <div style={{ maxWidth: 1000, margin: '0 auto', padding: '36px 24px 80px' }}>
+      
       {/* Header */}
-      <div style={{ textAlign: 'center', marginBottom: 48 }}>
-        <div className="animate-fadeInUp" style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 8,
-          padding: '8px 20px',
-          borderRadius: 9999,
-          background: 'rgba(99,102,241,0.1)',
-          border: '1px solid rgba(99,102,241,0.2)',
-          marginBottom: 20,
-          fontSize: 13,
-          fontWeight: 600,
-          color: '#818cf8',
-        }}>
-          🔬 18-Point Heuristic Engine
+      <div style={{ marginBottom: 32 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+          <span className="text-mono-meta">TELEMETRY SCANNER</span>
+          <span style={{ color: 'var(--border)' }}>/</span>
+          <span className="text-mono-meta">18 VECTOR HEURISTICS</span>
         </div>
-        <h1 className="animate-fadeInUp stagger-1" style={{
-          fontSize: 'clamp(32px, 5vw, 48px)',
-          fontWeight: 800,
-          letterSpacing: '-0.03em',
-          marginBottom: 12,
-        }}>
-          URL Threat <span className="gradient-text">Analyzer</span>
+        <h1 className="heading-section" style={{ fontSize: 26, marginBottom: 8 }}>
+          Heuristic URL Analyzer
         </h1>
-        <p className="animate-fadeInUp stagger-2" style={{
-          color: 'rgba(255,255,255,0.5)',
-          fontSize: 16,
-          maxWidth: 550,
-          margin: '0 auto',
-        }}>
-          Paste any URL below for instant phishing risk assessment with detailed heuristic analysis.
+        <p className="text-subtle" style={{ fontSize: 14 }}>
+          Inspect suspect links, domain structure, homoglyphs, and character substitution matrices in real time.
         </p>
       </div>
 
-      {/* Input Section */}
-      <div className="animate-fadeInUp stagger-3 glass" style={{
-        padding: 24,
-        marginBottom: 32,
-      }}>
-        <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap' }}>
-          <input
-            ref={inputRef}
-            type="text"
-            value={url}
-            onChange={e => setUrl(e.target.value)}
-            onKeyDown={e => e.key === 'Enter' && handleScan()}
-            placeholder="Enter a URL to analyze (e.g., https://example.com)"
-            className="input-glass"
-            style={{ flex: 1, minWidth: 250, fontFamily: 'var(--font-mono)', fontSize: 14 }}
-          />
+      {/* Input Console */}
+      <div className="card-minimal" style={{ padding: 20, marginBottom: 28, background: '#09090b' }}>
+        <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+          <div style={{ flex: 1, minWidth: 280, position: 'relative' }}>
+            <input
+              ref={inputRef}
+              type="text"
+              value={url}
+              onChange={e => setUrl(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && executeScan()}
+              placeholder="Paste suspect URL to evaluate (e.g. http://paypa1-secure.com/signin)..."
+              className="input-minimal"
+              style={{ paddingLeft: 38 }}
+            />
+            <div style={{ position: 'absolute', left: 12, top: 13, color: 'var(--foreground-subtle)' }}>
+              <SearchIcon size={16} />
+            </div>
+          </div>
           <button
-            onClick={handleScan}
+            onClick={() => executeScan()}
             disabled={loading || !url.trim()}
-            className="btn-primary"
-            style={{
-              opacity: loading || !url.trim() ? 0.5 : 1,
-              cursor: loading || !url.trim() ? 'not-allowed' : 'pointer',
-              minWidth: 140,
-            }}
+            className="btn-solid-white"
+            style={{ opacity: loading || !url.trim() ? 0.5 : 1, cursor: loading ? 'wait' : 'pointer' }}
           >
-            {loading ? (
-              <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                <span style={{ animation: 'spin 1s linear infinite', display: 'inline-block' }}>⚡</span>
-                Scanning...
-              </span>
-            ) : (
-              '🔍 Analyze'
-            )}
+            {loading ? 'Analyzing...' : 'Scan URL'}
           </button>
         </div>
 
-        {/* Example URLs */}
-        <div style={{ marginTop: 16 }}>
-          <span style={{ fontSize: 12, color: 'rgba(255,255,255,0.3)', fontWeight: 500 }}>
-            Try examples:
-          </span>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 8 }}>
-            {exampleURLs.map(ex => (
-              <button
-                key={ex.url}
-                onClick={() => { setUrl(ex.url); setResult(null); }}
-                style={{
-                  padding: '5px 12px',
-                  borderRadius: 8,
-                  background: 'rgba(255,255,255,0.05)',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                  color: 'rgba(255,255,255,0.6)',
-                  fontSize: 12,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  fontFamily: 'var(--font-mono)',
-                }}
-                onMouseEnter={e => {
-                  e.currentTarget.style.borderColor = 'rgba(99,102,241,0.3)';
-                  e.currentTarget.style.color = '#818cf8';
-                }}
-                onMouseLeave={e => {
-                  e.currentTarget.style.borderColor = 'rgba(255,255,255,0.08)';
-                  e.currentTarget.style.color = 'rgba(255,255,255,0.6)';
-                }}
-              >
-                {ex.label}
-              </button>
-            ))}
-          </div>
+        {/* Quick Presets */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginTop: 14 }}>
+          <span className="text-mono-meta">Presets:</span>
+          {exampleURLs.map(ex => (
+            <button
+              key={ex.url}
+              onClick={() => {
+                setUrl(ex.url);
+                executeScan(ex.url);
+              }}
+              style={{
+                padding: '3px 8px',
+                borderRadius: 4,
+                background: 'rgba(255, 255, 255, 0.04)',
+                border: '1px solid var(--border)',
+                color: 'var(--foreground-muted)',
+                fontSize: 11,
+                fontFamily: 'var(--font-mono)',
+                cursor: 'pointer',
+              }}
+              className="hover:border-zinc-500 hover:text-white"
+            >
+              {ex.label}
+            </button>
+          ))}
         </div>
       </div>
 
-      {/* Loading Animation */}
+      {/* Loading State */}
       {loading && (
-        <div className="glass scan-container scanning" style={{
-          padding: 48,
-          textAlign: 'center',
-          marginBottom: 32,
-        }}>
-          <div style={{ fontSize: 48, marginBottom: 16, animation: 'pulse 1s ease-in-out infinite' }}>🔬</div>
-          <div style={{ fontSize: 18, fontWeight: 600, color: '#fff', marginBottom: 8 }}>
-            Analyzing URL...
-          </div>
-          <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.4)' }}>
-            Running 18 heuristic checks against the URL
-          </div>
-          <div style={{ marginTop: 24, maxWidth: 300, margin: '24px auto 0' }}>
-            <div className="progress-bar">
-              <div className="progress-bar-fill" style={{
-                width: '85%',
-                background: 'var(--gradient-primary)',
-                animation: 'shimmer 1.5s infinite',
-                backgroundSize: '200% 100%',
-              }} />
-            </div>
+        <div className="card-minimal" style={{ padding: 48, textAlign: 'center', marginBottom: 28 }}>
+          <div className="text-mono-meta" style={{ marginBottom: 8 }}>EVALUATING 18 HEURISTIC VECTORS...</div>
+          <div style={{ fontSize: 13, color: 'var(--foreground-muted)' }}>
+            Calculating Levenshtein substitution matrix and Shannon domain entropy
           </div>
         </div>
       )}
 
-      {/* Error */}
+      {/* Error Output */}
       {result && !result.valid && (
-        <div className="glass" style={{
-          padding: 32,
-          textAlign: 'center',
-          borderColor: 'rgba(239,68,68,0.2)',
-          marginBottom: 32,
-        }}>
-          <div style={{ fontSize: 48, marginBottom: 16 }}>❌</div>
-          <div style={{ fontSize: 18, fontWeight: 600, color: '#ef4444', marginBottom: 8 }}>
-            Invalid URL
+        <div className="card-minimal" style={{ padding: 24, borderColor: 'var(--danger-border)', background: 'var(--danger-bg)', marginBottom: 28 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, color: 'var(--danger-text)', fontWeight: 600, fontSize: 14 }}>
+            <XCircleIcon size={18} />
+            <span>Invalid URL Structure</span>
           </div>
-          <div style={{ fontSize: 14, color: 'rgba(255,255,255,0.5)' }}>
-            {result.error || 'Please enter a valid URL to analyze.'}
-          </div>
+          <p className="text-subtle" style={{ fontSize: 13, marginTop: 4 }}>
+            {result.error || 'Please provide a valid URL to analyze.'}
+          </p>
         </div>
       )}
 
-      {/* Results */}
+      {/* Results Telemetry */}
       {result && result.valid && (
-        <div style={{ animation: 'fadeInUp 0.6s ease-out' }}>
-          {/* Risk Overview */}
-          <div className="glass" style={{
-            padding: 40,
-            marginBottom: 24,
-            display: 'flex',
-            flexWrap: 'wrap',
-            gap: 40,
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderColor: `${result.risk.color}30`,
-          }}>
-            <RiskMeter
-              score={result.risk.score}
-              level={result.risk.level}
-              label={result.risk.label}
-              color={result.risk.color}
-            />
+        <div>
+          {/* Top Summary Card */}
+          <div className="card-minimal" style={{ padding: 28, marginBottom: 24, background: '#09090b' }}>
+            <div style={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: 32,
+            }}>
+              {/* Score Gauge */}
+              <MinimalScoreGauge
+                score={result.risk.score}
+                level={result.risk.level}
+                label={result.risk.label}
+              />
 
-            <div style={{ flex: 1, minWidth: 280 }}>
-              {/* URL Display */}
-              <div style={{
-                padding: '12px 16px',
-                borderRadius: 10,
-                background: 'rgba(0,0,0,0.3)',
-                marginBottom: 20,
-                fontFamily: 'var(--font-mono)',
-                fontSize: 13,
-                color: 'rgba(255,255,255,0.8)',
-                wordBreak: 'break-all',
-                border: '1px solid rgba(255,255,255,0.05)',
-              }}>
-                {result.url}
-              </div>
+              {/* URL Breakdown Details */}
+              <div style={{ flex: 1, minWidth: 280 }}>
+                <div style={{
+                  padding: '10px 14px',
+                  borderRadius: 6,
+                  background: '#121215',
+                  border: '1px solid var(--border)',
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 13,
+                  color: '#ffffff',
+                  wordBreak: 'break-all',
+                  marginBottom: 16,
+                }}>
+                  {result.url}
+                </div>
 
-              {/* Summary Stats */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
-                <div style={{
-                  padding: 16,
-                  borderRadius: 10,
-                  background: 'rgba(16,185,129,0.08)',
-                  textAlign: 'center',
-                  border: '1px solid rgba(16,185,129,0.15)',
-                }}>
-                  <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--safe)' }}>{result.summary.passed}</div>
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 4, fontWeight: 500 }}>Passed</div>
-                </div>
-                <div style={{
-                  padding: 16,
-                  borderRadius: 10,
-                  background: 'rgba(245,158,11,0.08)',
-                  textAlign: 'center',
-                  border: '1px solid rgba(245,158,11,0.15)',
-                }}>
-                  <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--warning)' }}>{result.summary.warnings}</div>
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 4, fontWeight: 500 }}>Warnings</div>
-                </div>
-                <div style={{
-                  padding: 16,
-                  borderRadius: 10,
-                  background: 'rgba(239,68,68,0.08)',
-                  textAlign: 'center',
-                  border: '1px solid rgba(239,68,68,0.15)',
-                }}>
-                  <div style={{ fontSize: 24, fontWeight: 800, color: 'var(--danger)' }}>{result.summary.failed}</div>
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', marginTop: 4, fontWeight: 500 }}>Failed</div>
+                {/* 3 Metrics */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10 }}>
+                  <div style={{ padding: 12, borderRadius: 6, background: '#121215', border: '1px solid var(--border)' }}>
+                    <div className="text-mono-meta">PASSED</div>
+                    <div style={{ fontSize: 20, fontWeight: 700, color: 'var(--safe)', marginTop: 2 }}>
+                      {result.summary.passed}
+                    </div>
+                  </div>
+                  <div style={{ padding: 12, borderRadius: 6, background: '#121215', border: '1px solid var(--border)' }}>
+                    <div className="text-mono-meta">FAILED</div>
+                    <div style={{ fontSize: 20, fontWeight: 700, color: result.summary.failed > 0 ? 'var(--danger)' : 'var(--foreground)', marginTop: 2 }}>
+                      {result.summary.failed}
+                    </div>
+                  </div>
+                  <div style={{ padding: 12, borderRadius: 6, background: '#121215', border: '1px solid var(--border)' }}>
+                    <div className="text-mono-meta">RISK POINTS</div>
+                    <div style={{ fontSize: 20, fontWeight: 700, color: '#ffffff', marginTop: 2 }}>
+                      {result.risk.totalPoints} / {result.risk.maxPoints}
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Parsed URL Info */}
-          <div className="glass" style={{ padding: 24, marginBottom: 24 }}>
-            <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-              🔗 URL Breakdown
-            </h3>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 12 }}>
+          {/* Parsed Structure Grid */}
+          <div className="card-minimal" style={{ padding: 20, marginBottom: 24, background: '#09090b' }}>
+            <div className="text-mono-meta" style={{ marginBottom: 12 }}>DECOMPOSED URL PARAMETERS</div>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8 }}>
               {[
                 { label: 'Protocol', value: result.parsed.protocol },
                 { label: 'Hostname', value: result.parsed.hostname },
-                { label: 'Domain', value: result.parsed.domain },
-                { label: 'TLD', value: result.parsed.tld },
-                { label: 'Subdomains', value: result.parsed.subdomains.join('.') || 'None' },
+                { label: 'Registered Domain', value: result.parsed.domain },
+                { label: 'TLD', value: result.parsed.tld || '(none)' },
+                { label: 'Subdomains', value: result.parsed.subdomains.join('.') || '(none)' },
                 { label: 'Path', value: result.parsed.path || '/' },
               ].map(item => (
-                <div key={item.label} style={{
-                  padding: '10px 14px',
-                  borderRadius: 8,
-                  background: 'rgba(0,0,0,0.2)',
-                  border: '1px solid rgba(255,255,255,0.05)',
-                }}>
-                  <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.35)', fontWeight: 600, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    {item.label}
-                  </div>
-                  <div style={{ fontSize: 13, fontFamily: 'var(--font-mono)', color: 'rgba(255,255,255,0.8)', wordBreak: 'break-all' }}>
+                <div key={item.label} style={{ padding: '8px 12px', background: '#121215', borderRadius: 4, border: '1px solid var(--border-subtle)' }}>
+                  <div className="text-mono-meta" style={{ fontSize: 10 }}>{item.label}</div>
+                  <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: '#ffffff', wordBreak: 'break-all', marginTop: 2 }}>
                     {item.value}
                   </div>
                 </div>
@@ -438,42 +400,66 @@ export default function AnalyzerPage() {
             </div>
           </div>
 
-          {/* Detailed Checks */}
-          <div className="glass" style={{ padding: 24, marginBottom: 24 }}>
-            <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-              🔬 Detailed Analysis ({result.checks.length} Checks)
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-              {result.checks.map((check, i) => (
-                <CheckResult key={check.id} check={check} index={i} />
+          {/* Detailed Checks Accordion with Filter Tabs */}
+          <div className="card-minimal" style={{ padding: 20, marginBottom: 24, background: '#09090b' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, flexWrap: 'wrap', gap: 12 }}>
+              <div className="text-mono-meta">
+                VECTOR EVALUATION ({filteredChecks.length} SHOWN)
+              </div>
+
+              {/* Filter Tabs */}
+              <div style={{ display: 'flex', gap: 4, background: '#121215', padding: 3, borderRadius: 6, border: '1px solid var(--border)' }}>
+                {[
+                  { key: 'all', label: `All (${result.checks.length})` },
+                  { key: 'failed', label: `Failed (${result.summary.failed})` },
+                  { key: 'passed', label: `Passed (${result.summary.passed})` },
+                ].map(tab => (
+                  <button
+                    key={tab.key}
+                    onClick={() => setFilter(tab.key)}
+                    style={{
+                      background: filter === tab.key ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+                      border: 'none',
+                      color: filter === tab.key ? '#ffffff' : 'var(--foreground-muted)',
+                      fontSize: 11,
+                      fontFamily: 'var(--font-mono)',
+                      padding: '4px 10px',
+                      borderRadius: 4,
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              {filteredChecks.map(check => (
+                <MinimalCheckItem key={check.id} check={check} />
               ))}
             </div>
           </div>
 
-          {/* Recommendations */}
-          {result.recommendations.length > 0 && (
-            <div className="glass" style={{ padding: 24, marginBottom: 24 }}>
-              <h3 style={{ fontSize: 16, fontWeight: 700, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
-                💡 Recommendations
-              </h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                {result.recommendations.map((rec, i) => (
-                  <div key={i} style={{
-                    padding: '14px 18px',
-                    borderRadius: 10,
-                    background: rec.type === 'danger' ? 'rgba(239,68,68,0.08)' : rec.type === 'warning' ? 'rgba(245,158,11,0.08)' : 'rgba(99,102,241,0.08)',
-                    border: `1px solid ${rec.type === 'danger' ? 'rgba(239,68,68,0.15)' : rec.type === 'warning' ? 'rgba(245,158,11,0.15)' : 'rgba(99,102,241,0.15)'}`,
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: 12,
+          {/* Recommendations Callout */}
+          {result.recommendations?.length > 0 && (
+            <div className="card-minimal" style={{ padding: 20, background: '#09090b', marginBottom: 24 }}>
+              <div className="text-mono-meta" style={{ marginBottom: 12 }}>DEFENSIVE RECOMMENDATIONS</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                {result.recommendations.map((rec, idx) => (
+                  <div key={idx} style={{
+                    padding: '10px 14px',
+                    borderRadius: 6,
+                    background: rec.type === 'danger' ? 'var(--danger-bg)' : 'rgba(255, 255, 255, 0.02)',
+                    border: `1px solid ${rec.type === 'danger' ? 'var(--danger-border)' : 'var(--border)'}`,
                     fontSize: 13,
-                    color: 'rgba(255,255,255,0.8)',
-                    lineHeight: 1.6,
+                    color: rec.type === 'danger' ? 'var(--danger-text)' : 'var(--foreground-muted)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 10,
                   }}>
-                    <span style={{ fontSize: 16, marginTop: 1 }}>
-                      {rec.type === 'danger' ? '🚫' : rec.type === 'warning' ? '⚠️' : 'ℹ️'}
-                    </span>
-                    {rec.text}
+                    <AlertTriangleIcon size={16} />
+                    <span>{rec.text}</span>
                   </div>
                 ))}
               </div>
@@ -482,63 +468,70 @@ export default function AnalyzerPage() {
         </div>
       )}
 
-      {/* Scan History */}
+      {/* Scan History Table */}
       {history.length > 0 && (
-        <div className="glass" style={{ padding: 24, marginTop: 32 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <h3 style={{ fontSize: 16, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 8 }}>
-              📜 Recent Scans
-            </h3>
+        <div className="card-minimal" style={{ padding: 20, background: '#09090b' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 }}>
+            <span className="text-mono-meta">RECENT LOCAL SCANS</span>
             <button
-              onClick={() => { setHistory([]); localStorage.removeItem('phishguard_scan_history'); }}
+              onClick={() => {
+                localStorage.removeItem('phishguard_scan_history');
+                setHistory([]);
+              }}
               style={{
-                background: 'none',
+                background: 'transparent',
                 border: 'none',
-                color: 'rgba(255,255,255,0.3)',
-                fontSize: 12,
+                color: 'var(--foreground-subtle)',
+                fontSize: 11,
+                fontFamily: 'var(--font-mono)',
                 cursor: 'pointer',
               }}
+              className="hover:text-white"
             >
               Clear History
             </button>
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-            {history.slice(0, 5).map((entry, i) => (
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {history.slice(0, 5).map((entry, idx) => (
               <div
-                key={i}
+                key={idx}
                 style={{
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  padding: '10px 14px',
-                  borderRadius: 8,
-                  background: 'rgba(0,0,0,0.2)',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                }}
-                onClick={() => { setUrl(entry.url); }}
-                onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.3)'}
-                onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,0,0,0.2)'}
-              >
-                <div style={{
-                  fontFamily: 'var(--font-mono)',
+                  padding: '8px 12px',
+                  borderRadius: 4,
+                  background: '#121215',
+                  border: '1px solid var(--border-subtle)',
                   fontSize: 12,
-                  color: 'rgba(255,255,255,0.6)',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  maxWidth: '60%',
-                }}>
-                  {entry.url}
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span className={`badge-minimal ${entry.score <= 25 ? 'badge-safe' : 'badge-danger'}`} style={{ padding: '2px 6px', fontSize: 11 }}>
+                    {entry.score}
+                  </span>
+                  <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--foreground)', maxWidth: 450, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {entry.url}
+                  </span>
                 </div>
-                <span className={`badge badge-${entry.level === 'safe' ? 'safe' : entry.level === 'low' ? 'warning' : 'danger'}`}>
-                  {entry.score}% — {entry.label}
-                </span>
+
+                <button
+                  onClick={() => {
+                    setUrl(entry.url);
+                    executeScan(entry.url);
+                  }}
+                  className="btn-ghost"
+                  style={{ padding: '2px 8px', fontSize: 11 }}
+                >
+                  Rescan
+                </button>
               </div>
             ))}
           </div>
         </div>
       )}
+
     </div>
   );
 }
